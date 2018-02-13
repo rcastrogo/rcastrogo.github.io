@@ -1,0 +1,806 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=8" />
+  <style type="text/css">
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Verdana;
+    }
+
+      body * {
+        margin: 0;
+        padding: 0;
+        font-family: Verdana;
+        font-size: 8pt;
+      }
+
+    #Header {
+      background-color: navy;
+      color: White;
+      text-align: right;
+      font-size: 110%;
+      font-weight: bold;
+      padding: .1em .5em;
+      border-bottom: solid 1px silver;
+    }
+
+    #ToolBar {
+      padding: .1em .1em;
+      border-bottom: solid 1px silver;
+      background-color: navy;
+    }
+
+      #ToolBar a {
+        font-weight: bold;
+        color: #F0F0F0;
+        text-decoration: none;
+        border: solid 0px silver;
+        display: inline-block;
+        padding: .2em .3em;
+        margin: .1em;
+      }
+
+        #ToolBar a:hover {
+          color: yellow;
+        }
+
+    #Trace {
+      padding: .2em;
+    }
+
+    #formulario {
+      display: none;
+      padding: 1em;
+      background-color: white;
+      border-bottom: solid 1px gray;
+    }
+
+    label {
+      display: block;
+      font-size: 100%;
+    }
+
+    #txtRegex {
+      border: solid 1px gray;
+      width: 98%;
+      padding: .2em;
+      background-color: #fffff0;
+    }
+
+    #btnReset, #btnEnviar, #btnCancelar {
+      border: solid 1px gray;
+      margin: .5em auto;
+      padding: .2em;
+      width: 8em;
+      text-align: center;
+    }
+
+    pre {
+      font-family: Monospace;
+      margin: .1em 0 0 0;
+      background-color: #ffffff;
+      white-space: pre; /* CSS2 */
+      white-space: -moz-pre-wrap; /* Mozilla */
+      white-space: -hp-pre-wrap; /* HP printers */
+      white-space: -o-pre-wrap; /* Opera 7 */
+      white-space: -pre-wrap; /* Opera 4-6 */
+      white-space: pre-wrap; /* CSS 2.1 */
+      white-space: pre; /* CSS 3 (and 2.1 as well, actually) */
+      word-wrap: break-word; /* IE */
+      line-height: 1.1em;
+    }
+
+      pre span {
+        color: white;
+        background-color: gray;
+        padding: 0 .2em;
+        margin: 0 .5em 0 0;
+      }
+
+      pre b.l {
+        font-family: Monospace;
+        color: black;
+      }
+
+      pre i {
+        font-family: Monospace;
+      }
+
+      pre i {
+        color: blue;
+        margin-right: .3em;
+      }
+
+        pre i.date {
+          color: silver;
+        }
+
+        pre i.regeus {
+          color: red;
+        }
+
+        pre i.url {
+          color: navy;
+          font-style: italic;
+        }
+
+    #MIGA, #FileName {
+      border-bottom: solid 1px silver;
+      padding: .2em .1em;
+      background-color: navy;
+      color: white;
+      font-weight: bold;
+    }
+
+      #MIGA a, #FileName a {
+        color: white;
+        line-height: 1.5em;
+        border: none;
+        text-decoration: none;
+        margin: .5em .2em;
+      }
+
+        #MIGA a:hover, #FileName a:hover {
+          color: yellow;
+        }
+
+    a.dir, a.link {
+      padding: .2em 0 .2em 1.8em;
+      margin: .5em .2em;
+      text-decoration: none;
+      text-align: left;
+      border: none;
+      background: white url('data:image/gif;base64,R0lGODlhEgASAMQdAC2CnO35+1vH3fr9/dbx9jGUrXXS457g6YPV5sTr8YfX59Dv9Oj2+rbn79/0+C6Jo67k7V7L4GXN4FbE2o7Z6eH0+DWnvdjy9y6Joqfi8jivwzSgs6Lh8P///wAAAAAAACH5BAEAAB0ALAAAAAASABIAAAWQYCeOZGkCaKoC5zG88ABwCUsCQa4HcnHZI5yuUiEEAAUCUCRkVBaLxLGwWHYATkK0wWAgayWANtGAHLzIhhVANh8QDgCmAFHf3AiD4YfRUChVQQcKeRICSg9+CnFBeQaGE4gWFItAAI8CAhORAA8WCpVBEhGZmj+eCKFMGwKkEREZKAUGCLE3K7hWJru8vSMhADs=') no-repeat 0 center;
+    }
+
+    a.dir {
+      margin-left: .5em;
+    }
+
+    a.link {
+      background-image: url('data:image/gif;base64,R0lGODlhEAAQAPcAAEIx/2tra3Nzc3t7e3t7xnuEhIRrQoRra4SEhIx7a4yMjJRrMZR7Y5SUlJyEWpycnJylpaWEOaWlpa2Ua62trbW1tbXOzr2cSr2tlL21vb211r29vb3Gxr3Gzr3O1r3O3r3W1sbGxsbG58bOzsbO1sbO3s7Ozs7O59a9StbW1t7Otd7e3ufn1ufn5+/n1u/n3u/v5+/v7+/39/f39/f/9/f//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////yH5BAEAAAAALAAAAAAQABAAAAi0AAEAmEGQIIuDKl7EmCFQ4IwLKBZEQMEAxQEHKWI0BFCCAIEFGBJomJCBgYQVGwl8MNDCgAyXBmwISJGSgwwZMW7KsCGTZkMCFnK2uFljRs+UFmQMKFCgQo0aR38GlTFUBg2oM5HGYFpgwAaeWaUKvXk1qkACHZQy9QrW59mkOXOWFWBCa1OyWN0CAFpVBocNEBo00NuCA4QCAQIIKKDgQYgWG2OkoCChAocQKVK0aMEQQEAAADs=');
+      line-height: 2.1em;
+    }
+
+    canvas.default-canvasy { width:100%; height:100%;margin:0; padding:0; box-sizing:border-box}
+    #ChartPanel{ padding: .5em; background-color: white; border-bottom: solid 1px gray; width:100%;box-sizing: border-box;}
+    #ChartPanel label{ display:inline-block; }
+    #ChartContainer{ padding: 0; background-color:white}
+    #paramsContainer{ display: inline;}
+    #btnAceptar{ padding: 0 .5em}
+
+    .Calendar{border: solid 0px gray;z-index: 100000;}
+    .Calendar{background: Silver url(img/Calendar/Cal.Caption.gif) repeat-x;	padding-top: 9px;}
+    .Calendar table{border: solid 1px gray;	background-color: #DBDCE3;}
+    .Calendar thead{background-color: Transparent;}
+    .Calendar tbody{background-color: White;}
+    .Calendar td.today{color: white; text-align: center; font-weight:bold; background-color: Navy;cursor: pointer;}
+    .Calendar td.CalendarDay{color: black; text-align: center;cursor: pointer;}
+    .Calendar td.CalendarDayDisabled{color: gray;text-align: center;}
+    .Calendar td.SelectedDay{color: red;font-weight: bold;text-align: center;background: transparent url(img/Calendar/Cal.Today.gif) no-repeat center center;}
+    .Calendar .Calendar-header-day{	color: blue;font-weight: bold;	text-align: center;}
+    .Calendar div{float: left;}
+    .Calendar div.Left{	width: 16px;height: 16px;border: solid 1px gray;margin-right: 2px;	cursor: pointer;	background: transparent url(img/Calendar/Cal.Previous.gif) no-repeat center center;}
+    .Calendar div.Right{width: 16px;height: 16px;border: solid 1px gray;margin-right: 2px;cursor: pointer;background: transparent url(img/Calendar/Cal.Next.gif) no-repeat center center;}
+    .Calendar div.Close{float: right;margin-right: 0px;margin-left: 2px;width: 16px;height: 16px;border: solid 1px gray;cursor: pointer;background: transparent url(img/Calendar/Cal.Close.gif) no-repeat center center;}
+    .Calendar select{background-color:white}
+    .Calendar select.cboMes{font-size: 100.0%;}
+    .Calendar select.cboAnio{font-size: 100.0%;margin-left: 2px;}
+    input.txtCalendar{padding:1px 0 2px 18px !important;background: white url(img/Calendar/Cal.icon.gif) no-repeat 0px -2px; text-align:center; width:9em; border:solid 1px silver;}
+    .XdragX{filter: alpha(opacity=50); opacity: 0.50;z-index: 100000;}
+
+
+    .tile{ background-color: white;
+           border: solid 1px silver;
+           border-radius: 1.1em;
+           float: left;
+           margin: .5em .5%;
+           box-sizing: border-box;
+           padding: .5em;
+           box-shadow: gray 2px 2px 10px;
+           position: relative;          
+    }
+
+    .small-tile   { width: 32.3%; }
+    .big-tile     { width: 99%; }
+    .half-tile    { width: 49%; }
+    .quarter-tile { width: 24%; }
+    .h15 { height:20em;}
+
+    @media screen and (max-width: 600px) { 
+      .small-tile   { width: 99%; }
+      .big-tile     { width: 99%; }
+      .half-tile    { width: 99%; }
+      .quarter-tile { width: 99%; }       
+    }
+
+    .tile .title { padding: .3em; display : block; float:left; line-height : 16px; font-size: 16px; color : gray;
+                   max-width: 73%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap
+    }
+    .tile .tools { padding: .3em; float:right; padding: 5px 7px 5px 5px; display : inline-block;  height: 1.7em;}
+    .tile .tools i { cursor: pointer; line-height : 16px; font-size: 20px; color : gray; font-style:normal;  font-weight: bold; padding: 0 3px; }
+    .tile .tools i:hover { color:yellowgreen; }
+    .tile .body  { 
+        float: left;
+        border-top: solid 1px silver;
+        width : 100%;
+    }
+    .tile .body canvas{ height: 100%; width:100%; }
+    .tile .body svg{ height: 100%; width:100%; } 
+    .tile .title:before{
+      vertical-align: top;       
+      content : "\1F514  ";
+    }
+    i.icon-close:before{
+      vertical-align: top;       
+      content : "x";
+    }
+    i.icon-collapse:before{
+      vertical-align: top;       
+      content : " - ";
+    }
+    i.icon-expand:before{
+      vertical-align: top;       
+      content : " + ";
+    }
+    i.icon-refresh:before{
+      vertical-align: top;       
+      content : "🔃";
+    } 
+           
+    #label{
+      position:absolute; overflow:hidden; width:80px; height:30px; display:none;
+      background-color: black; box-shadow: gray 2px 2px 6px; opacity:.7; border-radius:18px; text-align:center; padding:10px; font-weight:bold;
+      color:whitesmoke;
+      transition: opacity ease-in .5s;
+    }
+
+  </style>
+  <script type="text/javascript">
+    this.JSON = this.JSON || {}
+    this.JSON.parse = this.JSON.parse || function (expr) { return eval('(' + expr + ')'); }
+    var $ = function (e) { return document.getElementById(e); };
+    String.prototype.contains = function (value) { return this.indexOf(value) >= 0; }
+    var $Ajax = {
+      Get: function (url, callBack) {
+        url += (url.contains('?') ? '&ms=' : '?ms=') + new Date().getTime();
+        var xml = this.CreateXMLHttpRequest();
+        xml.open("GET", url, true);
+        xml.setRequestHeader('If-Modified-Since', 'Thu, 01 Jan 1970 00:00:00 GMT');
+        xml.setRequestHeader('Cache-Control', 'no-cache');
+        xml.onreadystatechange = function () { if (xml.readyState == 4) callBack(xml.responseText) };
+        xml.send(null);
+      },
+      Post: function (url, params, callBack) {
+
+        var _params = ((params.tagName || '') == 'FORM') ? this.Serialize(params) : params;
+        var xml = this.CreateXMLHttpRequest();
+        xml.open("POST", url, true);
+        xml.onreadystatechange = function () { if (xml.readyState == 4) callBack(xml.responseText) };
+        xml.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset:ISO-8859-1");
+        xml.setRequestHeader("Content-length", _params.length);
+        xml.setRequestHeader("Connection", "close");
+        xml.send(_params);
+      },
+      CreateXMLHttpRequest: function () { return (window.ActiveXObject) ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest(); }
+    }
+
+    var _IsRegExpPanelVisible = false;
+    function ShowRegExpPanel() {
+      if (_IsRegExpPanelVisible) {
+        $('formulario').style.display = 'none';
+      }
+      else {
+        $('formulario').style.display = 'block';
+      }
+      _IsRegExpPanelVisible = !_IsRegExpPanelVisible;
+    }
+
+    function ChangeFormat() { SendCommand('action=txt', true); };
+
+    function ChangeSQL() {
+      $Ajax.Get('trace.aspx?action=SQL', function (result) {
+        var __Res = JSON.parse(result);
+        if (__Res.Resultado == 'OK') {
+          alert('Log de sentencias SQL: ' + __Res.Message);
+          return;
+        }
+        alert('Se ha producido un error.');
+      });
+    }
+
+    function SendCommand(value, reload) {
+      $Ajax.Get('trace.aspx?' + value, function (result) {
+        var __Res = JSON.parse(result);
+        if (__Res.Resultado != 'OK') {
+          alert('Se ha producido un error.');
+          return;
+        }
+        if (reload) window.location.reload();
+      });
+    }
+
+    function ChangeRegExp() { SendRegExp(encodeURIComponent($('txtRegex').value)); };
+    function ClearRegExp() { SendRegExp(''); };
+    function SendRegExp(value) {
+      $Ajax.Get('trace.aspx?action=regexp&txtRegex=' + value, function (result) {
+        var __Res = JSON.parse(result);
+        if (__Res.Resultado != 'OK') {
+          alert('Se ha producido un error.');
+          return;
+        }
+        window.location.reload();
+      });
+    }
+
+  </script>
+</head>
+<body>
+  <div id="Header">7pc-atdesarro8.INT.MARM.ES/BecasDeFormacion</div>
+  <div id="ToolBar">
+    <a href="trace.aspx">RELOAD</a>
+    <a href="javascript:SendCommand('action=clear', true)">CLEAR</a>
+    <a href="javascript:SendCommand('action=reset')">RESET</a>
+    <a href="javascript:SendCommand('action=set')">SET</a>
+    <a href="javascript:SendCommand('action=unset')">UNSET</a>
+    <a href="trace.aspx?action=charts">CHARTS</a>
+    <a href="javascript:SendCommand('action=traceon')">TRACEON</a>
+    <a href="javascript:SendCommand('action=traceoff')">TRACEOFF</a>
+    <a href="trace.aspx?action=list">LIST</a>
+    <a href="javascript:SendCommand('action=reset_app',true)">RESET APP</a>
+    <a href="trace.aspx?action=info">Info</a>
+    <a href="javascript:ChangeFormat();">TXT</a>
+    <a href="javascript:ShowRegExpPanel();">RegExp</a>
+    <a href="javascript:ChangeSQL();">Trace SQL</a>
+  </div>
+  <div>
+    <form id="formulario" method="post" action="trace.aspx?action=regexp" enctype="application/x-www-form-urlencoded">
+      <label for="txtRegex">Expresión regular:</label>
+      <input type="text" id="txtRegex" name="txtRegex" value="" />
+      <input type="button" id="btnEnviar" onclick="ChangeRegExp()" value="Set" />
+      <input type="button" id="btnReset" onclick="ClearRegExp()" value="Reset" />
+      <input type="button" id="btnCancelar" value="Close" onclick="ShowRegExpPanel()" />
+    </form>
+  </div>
+  <div id="FileName">Gráficos</div>
+  <div id="ChartPanel">
+    <label for="cmbChartType">Tipo :</label>
+    <select id="cmbChartType">
+      <option value=""></option>      
+    </select>    
+    <div id="paramsContainer"></div>
+    <button id="btnAceptar">Generar gráfico</button>
+  </div>
+  <div id="ChartContainer">
+
+  </div>
+  <div id="label"></div>
+  <script type="text/javascript" src="js/mapa.js"></script>
+  <script type="text/javascript" src="js/MAPA.Calendar.js"></script>
+  <script type="text/javascript" src="js/MAPA.Charts.js"></script>
+  <script type="text/javascript">
+    var __graph;
+    var __ui     = function(container){
+      var __date = ($('txtFecha') && $('txtFecha').value) || '';
+      container.innerHTML = '<label for="txtFecha">Fecha :</label> <input type="text" id="txtFecha" value="{0}" />'.format(__date);
+      MAPA.DateTextBox($('txtFecha'));
+    }
+    var __params = function(){ return '&fecha={0}'.format($('txtFecha').value); }
+    
+    var __ui_dashboard = function(container){ 
+      container.innerHTML = ''; 
+      $('ChartContainer').innerHTML = '<div class="tile quarter-tile"></div><div class="tile quarter-tile"></div><div class="tile quarter-tile"></div><div class="tile quarter-tile"></div>';
+      $('ChartContainer').innerHTML += '<div class="tile small-tile"></div><div class="tile small-tile"></div><div class="tile small-tile"></div><div class="tile big-tile"></div><div class="tile half-tile"></div><div class="tile half-tile"></div>';
+      $('ChartContainer').innerHTML += '<div class="tile quarter-tile"></div><div class="tile quarter-tile"></div><div class="tile quarter-tile"></div><div class="tile quarter-tile"></div>';
+
+      function __collapse(){
+        if(this.__body.style.display == '' ){
+          this.__body.style.display = 'none'; 
+          this.className = 'icon-expand';
+        }else{
+          this.__body.style.display = '';
+          this.className = 'icon-collapse';
+          var __g = this.__body.parentNode.__g;
+          __g.Width  = this.__body.parentNode.clientWidth * 1;
+          __g.Height = this.__body.parentNode.clientHeight * 1;
+          __g.RefreshLayout();
+        }
+        console.log(JSON.stringify(this.__body.parentNode.__g.dataSource));
+      }
+      Array.prototype.forEach.call( $('ChartContainer').querySelectorAll('div.tile'), function(e){
+        e.innerHTML = '<h5 class="title">Title</h5><span class="tools"><i class="icon-refresh"></i><i class="icon-collapse"></i><i class="icon-close"></i><span>';
+        e.innerHTML += '<div class="body h15"></div>';   
+        var __i = e.querySelector('i.icon-collapse');
+        __i.onclick = __collapse;
+        __i.__body =  e.querySelector('.body');
+      });
+    }
+
+    var __ui_svg = function(container){ 
+      container.innerHTML = ''; 
+      $('ChartContainer').innerHTML = '<div class="tile quarter-tile"></div><div class="tile quarter-tile"></div><div class="tile quarter-tile"></div><div class="tile quarter-tile"></div>';
+      $('ChartContainer').innerHTML += '<div class="tile small-tile"></div><div class="tile small-tile"></div><div class="tile small-tile"></div><div class="tile big-tile"></div><div class="tile half-tile"></div><div class="tile half-tile"></div>';
+     
+      function __collapse(){
+        if(this.__body.style.display == '' ){
+          this.__body.style.display = 'none'; 
+          this.className = 'icon-expand';
+        }else{
+          this.__body.style.display = '';
+          this.className = 'icon-collapse';
+        }        
+      }
+      Array.prototype.forEach.call( $('ChartContainer').querySelectorAll('div.tile'), function(e){
+        e.innerHTML = '<h5 class="title">Title</h5><span class="tools"><i class="icon-refresh"></i><i class="icon-collapse"></i><i class="icon-close"></i><span>';
+        e.innerHTML += '<div class="body h15"></div>';   
+        var __i = e.querySelector('i.icon-collapse');
+        __i.onclick = __collapse;
+        __i.__body =  e.querySelector('.body');
+      });
+    }
+
+    var __dashboard_params = function(){ return ''; }
+    var __svg_params = function(){ return ''; }
+
+    var __dashboard_init = function(){
+      var __colors = MAPA.Serie(MAPA.Charts.prototype.createColors(30));
+      function __EventHandler(type, eventArg) {
+        switch (type) {
+          case 'MAPA.Charts.OnClick':
+            console.log( $('FileName').innerHTML = '{0} - x : {1} , y : {2}'.format(type, eventArg.x, eventArg.y));
+            break;
+          case 'MAPA.Charts.OnItemSelected': // { position , source : 'item', data }
+            console.log( $('FileName').innerHTML = '{0} - x : {1} , y : {2}'.format(type, eventArg.position.x, eventArg.position.y));
+            eventArg.sender.Canvas.parentNode.appendChild($('label'));
+            //$('label').style.top = '{0}px'.format(eventArg.position.eventArg.pageY);
+            //$('label').style.left = '{0}px'.format(eventArg.position.eventArg.pageX);
+            $('label').style.display = 'block';
+            $('label').style.zIndex = '';
+            $('label').style.top  = '{0}px'.format((eventArg.data.hotPoint.y * eventArg.position.scaleY) - 35);
+            $('label').style.left = '{0}px'.format((eventArg.data.hotPoint.x * eventArg.position.scaleX) - 45);
+            $('label').innerHTML = '{0}<br/>{1}'.format(eventArg.data.legend, eventArg.data.value);
+             $('label').style.opacity = '0.7';
+            setTimeout(function(){
+              $('label').style.opacity = '0';
+              $('label').style.zIndex = '-1';
+            },1200);
+            break;
+          default:
+            console.log('{0} - {1}'.format(type, eventArg.Message || ''));
+            break;
+        }
+      }        
+
+      var __DATA = [        
+        // ===========================================================================================================
+        // Tarta (tipo 0)
+        // ===========================================================================================================
+        function (o, e, i) {
+          o.Style = 0;
+          o.startAngle = -Math.PI/2;
+          e.querySelector('h5').innerHTML = 'T-0 Tarta';                    
+          var __res = MAPA.Charts(o);          
+          __res.dataSource = [[25, "Enero",   "red"],
+                              [50, "Febrero", "blue"],
+                              [25, "Mayo",    "silver"]
+                             ];
+          return __res;
+        },
+        function (o, e, i) {
+          o.Style = 0;
+          o.LegendBox = true;
+          o.LegendWidth = .50;
+          e.querySelector('h5').innerHTML = 'T-0 Tarta leyenda 50%';
+          var __res = MAPA.Charts(o);
+          __res.dataSource = [[10, "Enero", ""],
+                              [20, "Febrero", ""],
+                              [30, "Mayo", "pink"],
+                              [40, "Diciembre", ""]
+          ];
+          return __res;
+        },
+        // ===========================================================================================================
+        // Columnas (tipo 1)
+        // ===========================================================================================================
+        function (o, e, i) {
+          o.Style = 1;
+          e.querySelector('h5').innerHTML = 'T-1 Columnas';
+          var __res = MAPA.Charts(o);
+          __res.dataSource = [[14, "lunes 4", ""],
+                              [4, "martes 5", ""],
+                              [11, "miércoles 6", ""], [10, "jueves 7", ""], [3, "viernes 8", ""], [7, "lunes 11", ""], [10, "martes 12", ""], [6, "miércoles 13", ""], [3, "lunes 18", ""], [2, "lunes 25", ""]];
+          return __res;
+        },
+        function (o, e, i) {
+          o.Style = 1;
+          o.SeriesEnabled = true;
+          o.LegendBox = true;
+          e.querySelector('h5').innerHTML = 'T-1 Columnas series leyenda 33%';
+          var __res = MAPA.Charts(o);
+          __res.dataSource = [[14, "Ovino", "Andalucía"],
+                              [4, "Caprino", "Andalucía"],
+                              [11, "Ovino", "Madrid"]
+          ];
+          return __res;
+        },
+        function (o, e, i) {
+          o.Style = 1;
+          o.SeriesEnabled = true;          
+          e.querySelector('h5').innerHTML = 'T-1 Columnas series';
+          var __res = MAPA.Charts(o);
+          __res.dataSource = [[14, "Ovino", "Toledo"],
+                              [4, "Caprino", "Toledo"],
+                              [11, "Ovino", "Madrid"]
+          ];
+          return __res;
+        },
+        function (o, e, i) {
+              o.Style = 1;
+              o.LegendBox = true;
+              o.LegendWidth = .30;
+              e.querySelector('h5').innerHTML = 'T-1 Columnas leyenda 30%';
+              var __res = MAPA.Charts(o);
+              __res.dataSource = [[14, "lunes 4", ""],
+                                  [4, "martes 5", ""],
+                                  [11, "miércoles 6", ""], [10, "jueves 7", ""], [3, "viernes 8", ""], [7, "lunes 11", ""], [10, "martes 12", ""], [6, "miércoles 13", ""], [3, "lunes 18", ""], [2, "lunes 25", ""]];
+              return __res;
+            },
+        // ===========================================================================================================
+        // Lineas (tipo 2)
+        // ===========================================================================================================
+        function (o, e, i) {
+          o.Style = 2;
+          e.querySelector('h5').innerHTML = 'T-2 Líneas';
+          var __res = MAPA.Charts(o);
+          __res.dataSource = [[25, "Enero", ""],
+                              [50, "Febrero", ""],
+                              [25, "Mayo", ""]
+          ];
+          return __res;
+        },
+        // ===========================================================================================================
+        // Tabla (tipo 3)
+        // ===========================================================================================================
+        function (o, e, i) {
+          o.Style = 3;
+          e.querySelector('h5').innerHTML = 'T-3 valores X,Y';
+          var __res = MAPA.Charts(o);
+          __res.dataSource = [["20 10", "Enero", "3"],
+                              ["50 15", "Febrero", "3"],
+                              ["65 20", "Mayo", "1"]
+          ];
+          return __res;
+        },
+        // ===========================================================================================================
+        // Tabla (tipo 4)
+        // 0: ["8:00,9:00,13:00,14:00,17:00,21:00,22:00,23", 0.25]    Eje X, desplazamiento
+        // 1: ["04179642J,00000000T"]                                 Eje Y
+        // 2: ["8:00,9:00,13:00,14:00,17:00,22:00", "3,1,1,3,3,1"]    Valores [Literales]  
+        // n: ["04179642J#Rafael,00000000T#Otro"]                     Descripcion EjeY 
+        // ===========================================================================================================
+        function (o, e, i) {
+          o.Style = 4;         
+          e.querySelector('h5').innerHTML = 'T-4 tabla';
+          var __res = MAPA.Charts(o);
+
+          __res.dataSource = [["8:00,9:00,13:00,14:00,17:00,21:00,22:00", 0.5],
+                              ["04179642J,00000000T"],
+                              ["8:00,9:00,13:00,14:00,17:00,22:00", "3,1,1,3,3,1"],
+                              ["8:00,22:00", "13,1"],
+                              ["04179642J#Rafael,00000000T#Otro"]
+          ];
+          return __res;
+        },
+        function (o, e, i) {
+          o.Style = 4;
+          o.LegendBox = true;
+          e.querySelector('h5').innerHTML = 'T-4 tabla leyenda 33%';
+          var __res = MAPA.Charts(o);
+          __res.dataSource = [["8:00,9:00,13:00,14:00,17:00,21:00,22:00", 0.5],
+                              ["04179642J,00000000T"],
+                              ["8:00,9:00,13:00,14:00,17:00,22:00", "3,1,1,3,3,1"],
+                              ["14:00,22:00", "13,1"],
+                              ["04179642J#Rafael,00000000T#Otro"]
+          ];
+          return __res;
+        }
+      ]
+
+
+      Array.prototype.forEach.call( $('ChartContainer').querySelectorAll('div.tile'), function(e, i){
+        
+        var __p = { Style: ~~MAPA.Core.Math.Random(3, -1),
+                    Width: e.clientWidth * .99,
+                    Height: e.clientHeight * .99,
+                    Padding: [20, 20, 20, 20],
+                    Title: '',
+                    SeriesEnabled: true,
+                    LegendBox: false,
+                    LegendWidth: 0.33,
+                    Colors: __colors   }
+
+        var __g = __DATA[i](__p, e, i + 1);
+        __g.ChangeStyle(__g.Style);
+        __g.Events.OnClick.Add(__EventHandler);
+        __g.Events.OnItemSelected.Add(__EventHandler);
+        e.querySelector('.body').innerHTML = '';
+        e.querySelector('.body').appendChild(__g.Canvas);                 
+        e.__g = __g;
+      });
+      
+    }
+    
+    this.SVG = function(element, o) {
+      var x = document.createElementNS('http://www.w3.org/2000/svg', element);  
+      for (var p in o) {         
+        if(o.hasOwnProperty(p)) x[p] = x.setAttributeNS(null, p, o[p]);
+      }
+      return x;
+    }
+
+
+
+    var __svg_init = function(){
+      Array.prototype.forEach.call( $('ChartContainer').querySelectorAll('div.tile'), function(e, i){
+        var __svg = function(){
+          var __that = {};
+          var xmlns = "http://www.w3.org/2000/svg";
+          
+          //__that.element =  document.createElementNS(xmlns, 'svg');
+          
+          __that.element =  SVG('svg', { width : '300', 
+                                         height : '300',
+                                         viewBox : "0 0 300 300" });
+
+          __that.element.appendChild( SVG('circle', { cx : '50', cy : '50', r : '40', stroke : 'black', fill : 'red' }));
+          __that.element.appendChild( SVG('rect', { x : '50', y : '50', width : '40', height : 200, stroke : 'black', "stroke-width" : 3 , fill : 'blue' }));
+
+          //__that.element.setAttribute(null, "width", 300);
+          //__that.element.setAttribute(null, "height", 300);
+          //__that.element.setAttribute(null, "viewBox", "0 0 " + 300 + " " + 300);
+          //__that.element.innerHTML = '<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />';
+          //__that.element.innerHTML += '<rect x="200" y="40" width="70" height="100" style="fill:rgb(0,0,255);stroke-width:3;stroke:rgb(0,0,0)" />';
+
+            //var g = document.createElementNS (xmlns, "g");
+            //svgElem.appendChild (g);
+            //g.setAttributeNS (null, 'transform', 'matrix(1,0,0,-1,0,300)');
+
+            //    // draw linear gradient
+            //var defs = document.createElementNS (xmlns, "defs");
+            //var grad = document.createElementNS (xmlns, "linearGradient");
+            //grad.setAttributeNS (null, "id", "gradient");
+            //grad.setAttributeNS (null, "x1", "0%");
+            //grad.setAttributeNS (null, "x2", "0%");
+            //grad.setAttributeNS (null, "y1", "100%");
+            //grad.setAttributeNS (null, "y2", "0%");
+            //var stopTop = document.createElementNS (xmlns, "stop");
+            //stopTop.setAttributeNS (null, "offset", "0%");
+            //stopTop.setAttributeNS (null, "stop-color", "#ff0000");
+            //grad.appendChild (stopTop);
+            //var stopBottom = document.createElementNS (xmlns, "stop");
+            //stopBottom.setAttributeNS (null, "offset", "100%");
+            //stopBottom.setAttributeNS (null, "stop-color", "#0000ff");
+            //grad.appendChild (stopBottom);
+            //defs.appendChild (grad);
+            //g.appendChild (defs);
+
+                // draw borders
+            //var coords = "M 0, 0";
+            //coords += " l 0, 300";
+            //coords += " l 300, 0";
+            //coords += " l 0, -300";
+            //coords += " l -300, 0";
+
+            //var path = document.createElementNS (xmlns, "path");
+            //path.setAttributeNS (null, 'stroke', "#000000");
+            //path.setAttributeNS (null, 'stroke-width', 10);
+            //path.setAttributeNS (null, 'stroke-linejoin', "round");
+            //path.setAttributeNS (null, 'd', coords);
+            //path.setAttributeNS (null, 'fill', "url(#gradient)");
+            //path.setAttributeNS (null, 'opacity', 1.0);
+            //g.appendChild (path);
+
+ 
+          return __that;
+        }();
+        e.querySelector('.body').innerHTML = '';
+        e.querySelector('.body').appendChild(__svg.element);  
+        
+      });
+      
+    }
+
+
+    var __charts = [
+      { id : 1, style : 1, series : true, panel : false, title : 'Inicios de sesión - Resumen', ui : __ui, getParams : __params },
+      { id : 2, style : 2, series : true, panel : false, title : 'Inicios de sesión - Por hora', ui : __ui, getParams : __params },
+      { id : 3, style : 0, series : true, panel : false, title : 'Inicios de sesión - Por hora (%)', ui : __ui, getParams : __params },
+      { id : 4, style : 4, series : true, panel : false, title : 'Inicios de sesión - Por usuario', ui : __ui, getParams : __params },
+      { id : 5, style : 1, series : false, panel : true , title : 'Número de accesos - Por página', ui : __ui, getParams : __params },
+      { id : 6, style : 1, series : true, panel : true , title : 'Número de accesos - Por IP', ui : __ui, getParams : __params },
+      { id : 7, style : 1, series : true, panel : true , title : 'Panel de mandos', ui : __ui_dashboard, getParams : __dashboard_params },
+      { id : 8, title : 'SVG', ui : __ui_svg, getParams : __svg_params }
+    ];
+
+
+    var __initGraph = function(){
+      __graph = MAPA.Charts({ Style   : 1, 
+                              Width   : $('ChartContainer').clientWidth * .99, 
+                              Height  : 400, //$('ChartContainer').clientHeight * .99,
+                              Padding : [10, 20, 35, 35],                                   
+                              Title   : 'Gráfico',
+                              LegendBox   : false,
+                              LegendWidth : 0.33,
+                              Colors  : MAPA.Serie(['rgba(255,0,0,.9)',   'rgba(0,255,0,.9)',
+                                                    'rgba(0,0,255,.9)',   'rgba(255,255,0,.9)',
+                                                    'rgba(255,0,255,.9)', 'rgba(0,255,255,.9)' ])
+      });
+      $('ChartContainer').innerHTML = '';
+      $('ChartContainer').appendChild(__graph.Canvas);
+    }
+
+    var __init = function(){
+      window.onresize = function(){
+        Array.prototype.forEach.call( $('ChartContainer').querySelectorAll('div.tile'), function(e){
+          if(e.__g){
+            e.__g.Width  = e.clientWidth * 1;
+            e.__g.Height = e.clientHeight * 1;
+            e.__g.RefreshLayout();         
+          }
+        });    
+      };
+      var __cmb = $('cmbChartType');
+      __charts.forEach( function(c){
+        MAPA.AppendOption(__cmb, c.id, c.title);
+      });
+      $('btnAceptar').onclick = __DrawChart;  
+      __cmb.onchange = function(){  
+        $('ChartContainer').innerHTML  = '';
+        $('paramsContainer').innerHTML = '';     
+        if(__cmb.value==0){          
+          return;
+        }
+        // MAPA.Graphics.Clear(__graph.Context,'white'); 
+        var __current = __charts.Item('id', __cmb.value);
+        if(__current.ui) __current.ui($('paramsContainer'));
+      }; 
+    }
+       
+    var __DrawChart = function(){
+      var __cmb = $('cmbChartType');
+      $('ChartContainer').style.display = __cmb.value ? 'block' : 'none' ;
+      if(__cmb.value==0){
+        return;
+      }else if(__cmb.value==7){
+        __dashboard_init();        
+      }else if(__cmb.value==8){
+        __svg_init();        
+      }else{
+        __initGraph();            
+        MAPA.Graphics.Clear(__graph.Context,'white');
+        var __current = __charts.Item('id', __cmb.value);            
+        $Ajax.Get('json/Admin.ashx?accion=charts.data&queryId={0}{1}'.format(__cmb.value, __current.getParams() ), function(result){
+          var __response = JSON.tryParse(result);
+          if(__response.Resultado != 'OK') {
+            __graph.Title = 'Error al obtener los datos.';
+            __graph.dataSource = [];
+            __graph.ChangeStyle(__current.style);          
+            return;
+          }        
+          __graph.Title      = __current.title;
+          __graph.LegendBox  = __current.panel;
+          __graph.SeriesEnabled = __current.series;
+          __graph.Width  = $('ChartContainer').clientWidth * .99;
+          __graph.Height = $('ChartContainer').clientHeight * .99;
+          __graph.dataSource = __response.Data;
+          __graph.ChangeStyle(__current.style);        
+        });
+      }
+    }      
+    __init();
+  </script>
+</body>
+</html>
+
