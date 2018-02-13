@@ -1,0 +1,273 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style type="text/css">
+
+    *, html { padding:0; margin:0; overflow:hidden; touch-action: none; }
+    body { background-color: black }
+
+    #canvas { box-sizing: border-box; touch-action: none; position:absolute; left:0; right:0; width:100%; }     
+    #dialog-layer{ position: absolute; top:0; left:0; right:0; bottom:0; 
+                   z-index:1000; 
+                   background-color: gray; opacity:.6; display:none;}
+    #toolbar{ padding: .3em; background-color: black; border-bottom: solid 4px gray; display:none }
+    #footer { padding: .3em; background-color: black; border-top: solid 4px gray;
+              position: absolute; left:0; right:0; height:30px; bottom:0; 
+              color: gray; text-align:center; line-height:1.6em; font-size:18px; display : none;}
+
+
+    .dialog-container{ position: absolute; top:20%; left:-100em; width:300px ; bottom:20%; 
+                       z-index: 1001; opacity : .8; 
+                       background-color: black; border: solid 3px white; border-radius:1em; box-shadow: gray 5px 5px 34px;
+                       transition: left .5s; }
+    .dialog-title{ position: absolute; top: 0; left: 0; right: 0; color : whitesmoke; font-size:140%; font-weight:bold; padding: .4em; text-align: center; border-bottom: solid 1px white }
+    .dialog-body { position: absolute; left: 3px; right: 3px; top: 3em; bottom: 4.4em; text-align: center; color: whitesmoke; overflow:auto;}
+    .dialog-message { position: absolute; left: 3px; right: 3px; top: 3px; bottom: 3px; 
+                      font-size: 130%; font-weight: bold; color: yellow; overflow:auto;  
+
+    }
+
+    .dialog-footer { position: absolute; bottom: 0; left: 0; right: 0; height: 3em; text-align: center; padding: 10px; border-top: solid 1px white; }    
+      
+    div.tool { padding:.5em; width:50px; height: 50px; cursor:pointer; box-sizing: border-box; }   
+    div.tool { float: left; margin: 0 .1em; background: transparent url(img/UML.Buttons.png) no-repeat 0 0; }
+    div.tool.right{ float:right; }
+    div.tool.inline{ float:none; display:inline-block; }
+    div.tool:hover  { box-shadow: inset 0 0 30px rgba(0,0,0,0.8); transition: all 0.25s; transition-timing-function:ease; transition-delay: 0s; } 
+    div.tool:active { transform: translateY(2px);}
+
+    .btn-ok { background-position: -300px -100px !important; }
+    .btn-cancel{ background-position: -250px -100px !important; }
+    .btn-home { background-position: 0px 0px !important }
+    .btn-import { background-position: -100px -50px !important }
+    .btn-open { background-position: -50px 0px !important }
+    .btn-config { background-position: -250px -50px !important }
+    .btn-save { background-position: -400px -50px !important }
+    .btn-clear { background-position: -150px 0px !important }
+    .btn-undo { background-position: 0px -100px !important }
+    .btn-redo { background-position: -50px -100px !important }  
+    .btn-repo { background-position: -200px 0px !important }  
+    .btn-edit { background-position: -300px -50px !important }
+    .btn-pointer { background-position: -100px -100px !important }
+    .btn-actor { background-position: -350px -50px !important }
+    .btn-useCase { background-position: -450px -50px !important }
+    .btn-link { background-position: -200px -100px !important }
+    .btn-delete { background-position: -50px -50px !important }
+
+    
+    textarea{ position: absolute; left: 3px; right: 3px; bottom: 3px;  top: 3px; width: 98%;
+              border: solid 1px white; background-color: transparent; color: white; padding: .3em;
+              box-sizing: border-box; resize: none}
+    
+    input[type="text"]{background-color:black; color: whitesmoke;
+                       padding: .42em; font-size: 20px;                         
+                       border: solid 3px white; border-radius: .5em; 
+    }  
+    #txtValue { width: calc(100% - 27em); min-width:15em; float : left; margin-top: 0.13em; margin-right: .5em; display : none; }
+    #txt-doc-name { width : 240px; }
+    label[for="txt-doc-name"]{ font-size : 20px; display : inline-block; padding:3px;}
+
+    input[type="text"]:focus{ outline: 0;}
+    textarea:focus{ outline: 0;}
+
+    .lv-item { margin: 7px; padding: 7px 7px 7px 39px; box-sizing: border-box ; border: solid 1px gray;
+               color: whitesmoke; border-radius:.5em;
+               background: transparent url(img/UML.Buttons.png) no-repeat 0 0;
+    }
+    .lv-item.checked{ box-shadow: inset 0 0 30px rgba(250,0,0,0.9); }
+    .lv-item:hover  { box-shadow: inset 0 0 30px rgba(50,50,200,0.8); transition: all 0.25s; transition-timing-function:ease; transition-delay: 0s; } 
+    .lv-item:active { transform: translateY(2px);}
+    .lv-item[data-entity="A"] { background-position: -572px -226px }
+    .lv-item[data-entity="U"] { background-position: -572px -253px }
+    .lv-item[data-entity="File"] { background-position: -574px 7px; text-align:left }
+  </style>
+     
+  <script type="text/javascript" src="core/Pol.Core.js"></script>
+  <script type="text/javascript" src="core/Pol.Core.Game.js"></script>
+  <script type="text/javascript" src="core/Pol.Core.Drawing.js"></script>
+  <script type="text/javascript" src="UML.js"></script>
+  <script type="text/javascript" src="UML.Controllers.SplashScreen.js"></script>
+  <script type="text/javascript" src="UML.Controllers.Main.js"></script>   
+  <script type="text/javascript"> 
+                
+    function __InitGame(){
+      // =======================    
+      // Game Listener
+      // =======================
+      //__BindEventListener();
+      // ======================================================================================================    
+      // Game States
+      // ======================================================================================================
+      Pol.Core.Game.StateManager.Add('SplashScreen'   , UML.StateControllers.SplashScreenController);
+      Pol.Core.Game.StateManager.Add('Main'           , UML.StateControllers.MainController);
+      // =======================================================  
+      // Canvas initialization 
+      // =======================================================                    
+      Pol.Core.Game.InitCanvas({ width : 800, height : 400 })
+                   .RefreshLayout()                    
+                   .InitGameLoop()
+                   .Play('SplashScreen'); 
+      Pol.hide([$('toolbar'), $('footer'), $('btn-ok'), $('btn-cancel')])      
+      Pol.DB.open();
+    }    
+    
+    Pol.Dialogs = function(){
+      var __that = {};
+      var __ref  = {};
+      __that.centerLayout = function(w,h){
+        return { top    : (window.innerHeight/2 - h/2) + 'px',
+                 left   : (window.innerWidth/2 - w/2) + 'px', 
+                 bottom : '',  width  : w + 'px', height : h + 'px' };        
+      }
+      __that.PercentLayout = function(w,h){
+        return { top    : (50 - h/2) + '%', left   : (50 - w/2) + '%', 
+                 bottom : '',               width  : w + '%', height : h + '%' };        
+      }
+      __that.show = function (title, content, layout, autoClose){
+
+        __ref = { dlg : $('dlgContainer'), layer : $('dialog-layer') };
+        Pol.show([__ref.layer, __ref.dlg]);
+
+        // Calc size and position
+        var __l = layout || __that.centerLayout(300,250);
+        __ref.dlg.style.top    = __l.top || ''; 
+        __ref.dlg.style.bottom = __l.bottom || ''; 
+        __ref.dlg.style.height = __l.height || '';
+        __ref.dlg.style.width  = __l.width || '';
+        setTimeout( function(){ __ref.dlg.style.left = __l.left;}, 10);
+        // Objects
+        __ref.title     = __ref.dlg.querySelector('.dialog-title');
+        __ref.body      = __ref.dlg.querySelector('.dialog-body');
+        __ref.footer    = __ref.dlg.querySelector('.dialog-footer');
+        __ref.buttons   = __ref.footer.querySelectorAll('.tool');
+        __ref.btnOk     = __ref.footer.querySelector('.btn-ok');
+        __ref.btnCancel = __ref.footer.querySelector('.btn-cancel');
+        __ref.title.innerHTML = title || '';
+        __ref.body.innerHTML  = '<div class="dialog-message">{0}</div>' .format(content || '¿Está seguro de continuar?');
+        __ref.hideFooter = function(){
+          __ref.footer.style.display = 'none';
+          __ref.body.style.bottom = '3px'; 
+          return __ref;
+        }
+        if(autoClose) setTimeout( Pol.Dialogs.close, autoClose);        
+        return __ref;
+      }
+      __that.hide = function(callback){
+        __ref.dlg.style.left = '80em';
+        setTimeout(callback, 300);
+      }
+
+      __that.close = function(){
+        __ref.dlg.style.left = '100em';
+        setTimeout(function(){
+          Pol.hide([__ref.layer, __ref.dlg]);
+          __ref.dlg.style.left      = '-40em';
+          __ref.btnOk.style.display = '';
+          __ref.btnCancel.style.display = '';
+          __ref.footer.style.display    = __ref.body.style.bottom = ''; 
+          __ref.btnCancel.onclick = function(){};
+          __ref.btnOk.onclick = function(){};          
+        }, 400);
+      }
+      return __that;
+    }();  
+
+    Pol.DB = function(){
+      var _db = { name      : 'uml.db', 
+                  version   : 1,
+                  indexedDB : window.indexedDB,
+                  db        : {},
+                  open      : function(callback){
+                    var request = _db.indexedDB.open(_db.name, _db.version);
+                    request.onsuccess = function(e) {                      
+                      _db.db = e.target.result;    
+                      if(callback) callback(e.target.result);
+                    }
+                    request.onfailure = function(e){ console.error(e); }        
+                    request.onerror   = function(e){ console.error(e); }
+                    request.onupgradeneeded = function(e) {                                          
+                      _db.db = e.target.result;
+                      try {
+                        if(_db.db.objectStoreNames && _db.db.objectStoreNames.contains("Files")) {
+                          _db.db.deleteObjectStore("Files");
+                        }
+                        if(_db.db.objectStoreNames && _db.db.objectStoreNames.contains("Repository")) {
+                          _db.db.deleteObjectStore("Repository");
+                        }
+                      }
+                      catch (err) {
+                        console.log(err);
+                      }
+                      var store = _db.db.createObjectStore("Files", { keyPath : "name" });
+                      var store = _db.db.createObjectStore("Repository", { keyPath : "name" });
+                    }       
+                  },
+                  deleteRow : function(name, key, callback){                    
+                    var __trans = _db.db.transaction(name, "readwrite");    
+                    var __request = __trans.objectStore(name).delete(key);
+                    __request.onsuccess = function(e){
+                      if(callback) callback(e.result);
+                    };
+                  },
+                  readAll : function(name, callback){
+                    var __items = [];
+                    var __trans = _db.db.transaction(name, "readonly");    
+                    var __cursorRequest = __trans.objectStore(name).openCursor(IDBKeyRange.lowerBound(0));
+                    __cursorRequest.onsuccess = function(e) {
+                      var __result = e.target.result;
+                      if(!!__result == false) return callback(__items);    
+                      __items.push(__result.value);
+                      __result.continue();
+                    };
+                    __cursorRequest.onerror = function(e){ };
+                  }
+          }
+      return _db;
+    }();
+
+  </script>
+  
+</head>
+<body onload="__InitGame();">
+  <div id="toolbar">
+
+    <input id="txtValue" type="text" />    
+    <div id="btn-ok" class="tool btn-ok"></div>
+    <div id="btn-cancel" class="tool btn-cancel"></div>
+
+    <div id="btn-open" class="tool btn-open"></div>
+    <div id="btn-save" class="tool btn-save"></div>
+    <div id="btn-clear" class="tool btn-clear"></div>
+    <div id="btn-delete" class="tool btn-delete"></div>
+
+    <div id="btn-undo" class="tool btn-undo"></div>
+    <div id="btn-redo" class="tool btn-redo"></div>
+    <div id="btn-import" class="tool btn-import"></div> 
+    <div id="btn-config" class="tool btn-config"></div>
+
+    <div id="btn-tool-link" class="tool btn-link right"></div>
+    <div id="btn-tool-useCase" class="tool btn-useCase right"></div>
+    <div id="btn-tool-actor" class="tool btn-actor right"></div>
+    <div id="btn-tool-pointer" class="tool btn-pointer right"></div>
+    <div id="btn-edit" class="tool btn-edit right"></div>
+    <div id="btn-repo" class="tool btn-repo right"></div>    
+  </div>
+  <div id="footer"></div>
+
+  <div id="dialog-layer"></div>
+
+  <div id="dlgContainer" class="dialog-container">    
+    <div class="dialog-title">Título</div>
+    <div class="dialog-body"> </div>
+    <div class="dialog-footer">
+      <div id="dlg-btn-cancel" class="tool btn-ok inline"></div>
+      <div id="dlg-btn-ok" class="tool btn-cancel inline" ></div>
+    </div>
+  </div>
+
+
+</body>
+
+</html>
