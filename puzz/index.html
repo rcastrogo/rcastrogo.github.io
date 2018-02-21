@@ -1,0 +1,99 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style type="text/css">
+    *, html { padding:0;margin:0;overflow:hidden;touch-action: none; }
+    body{ background-color: black;background: black url() center center no-repeat fixed;background-size: cover; }
+    #canvas { box-sizing: border-box; touch-action: none;} 
+    #MsgOverlay { box-sizing: border-box; 
+                  background-color: Red; opacity : .5;  
+                  position: absolute; z-index: 6; ;
+                }  
+              
+  </style>
+     
+  <script type="text/javascript" src="core/Pol.Core.js"></script>
+  <script type="text/javascript" src="core/Pol.Core.Game.js"></script>
+  <script type="text/javascript" src="core/Pol.Core.Drawing.js"></script>
+  <script type="text/javascript" src="PuZZ.js"></script>
+  <script type="text/javascript" src="PuZZ.Controllers.SplashScreen.js"></script>
+  <script type="text/javascript" src="PuZZ.Controllers.Game.js"></script>
+  <script type="text/javascript" src="PuZZ.Controllers.Menu.js"></script>
+  <script type="text/javascript" src="PuZZ.Controllers.Credits.js"></script>
+  <script type="text/javascript" src="PuZZ.Controllers.Ballons.js"></script>
+  <script type="text/javascript" src="PuZZ.Controllers.Shapes.js"></script>
+  <script type="text/javascript" src="PuZZ.Controllers.Score.js"></script>
+  <script type="text/javascript" src="PuZZ.Controllers.Letters.js"></script>
+  <script type="text/javascript" src="PuZZ.Controllers.Numbers.js"></script>
+  <script type="text/javascript" src="PuZZ.Dialogs.AnimalPicker.js"></script>   
+  <script type="text/javascript"> 
+            
+     function __InitGame(){
+      // =======================    
+      // Game Listener
+      // =======================
+      __BindEventListener();
+      // ======================================================================================================    
+      // Game States
+      // ======================================================================================================
+      Pol.Core.Game.StateManager.Add('SplashScreen'   , PuZZGame.StateControllers.SplashScreenController);
+      Pol.Core.Game.StateManager.Add('Menu'           , PuZZGame.StateControllers.MenuController);
+      Pol.Core.Game.StateManager.Add('Game'           , PuZZGame.StateControllers.GameController);
+      Pol.Core.Game.StateManager.Add('Credits'        , PuZZGame.StateControllers.CreditsController);
+      Pol.Core.Game.StateManager.Add('Ballons'        , PuZZGame.StateControllers.BallonsController);
+      Pol.Core.Game.StateManager.Add('Shapes'         , PuZZGame.StateControllers.ShapesController);
+      Pol.Core.Game.StateManager.Add('Score'          , PuZZGame.StateControllers.ScoreController);
+      Pol.Core.Game.StateManager.Add('Numbers'        , PuZZGame.StateControllers.NumbersController);
+      Pol.Core.Game.StateManager.Add('Letters'        , PuZZGame.StateControllers.LettersController);
+      // =======================================================  
+      // Canvas initialization 
+      // =======================================================                    
+      Pol.Core.Game.InitCanvas({ width : 1280, height : 800 })
+                   .RefreshLayout()                    
+                   .InitGameLoop()
+                   .Play('SplashScreen'); 
+      Pol.Core.Game.controller = 'Score';                                                       
+    } 
+    
+    function __BindEventListener(){          
+      
+      function __EventHandler(type, eventArg){                
+        switch(type){
+          case "Pol.Core.Game.Resize":
+            console.log('{0} - {1} x {2}'.format(type, eventArg.Width, eventArg.Height));
+            break;
+          default:
+           console.log('{0} - {1}'.format(type, eventArg.Message || ''));
+            break;
+        }            
+      }
+            
+//      Pol.Core.Resources.Events.OnError.Add(__EventHandler);
+//      Pol.Core.Resources.Events.OnReady.Add(__EventHandler);
+//      Pol.Core.Resources.Events.OnLoaded.Add(__EventHandler);
+//      
+//      Pol.Core.Game.Events.OnResize.Add(__EventHandler);
+//      Pol.Core.Game.Events.OnPause .Add(__EventHandler);
+//      Pol.Core.Game.Events.OnResume.Add(__EventHandler);     
+//      
+//      Pol.Core.Game.StateManager.Events.OnStateChange.Add(__EventHandler);
+      Pol.Core.Game.InputManager.Events.OnTap.Add(__EventHandler);
+//      Pol.Core.Game.InputManager.Events.OnMove.Add(__EventHandler);
+//      Pol.Core.Game.InputManager.Events.OnEndTap.Add(__EventHandler); 
+//      Pol.Core.Game.EventManager.Events.OnAdd.Add(__EventHandler);
+             
+    }        
+                  
+
+  </script>
+  
+</head>
+<body onload="__InitGame();">
+<!-- <div id="MsgOverlay"></div>-->    
+</body>
+
+
+
+</html>
