@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>
+	Informes
+</title><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="viewport" content="width=device-width" />  
+  <style type="text/css" media="screen">
+    
+    * { font-size: 95%; margin:0; padding:0; }
+
+    .ItemsContainer{top:26px; bottom:0; padding:.5em; } 
+    .ToolbarContainer{ background-color: whitesmoke; height: 25px; position:relative; border-bottom: solid 1px silver} 
+    .rpt-report-header{ font-size:300%; font-weight:bold; text-align:center; padding:15px 0; border:solid 1px silver; border-radius:10px; margin:5px; }  
+    .rpt-report-header-sub { border-bottom:solid 1px silver; text-align:right; padding:5px;}
+    .rpt-header{ background-color:white; padding:2px; margin:0; margin-bottom:2px; border-bottom:solid 1px gray;}
+    .rpt-detail{ background-color:white; padding:2px; margin:0; margin-top:5px; border-bottom:solid 1px gray;}
+    .rpt-footer{ background-color:white; padding:2px; margin:0; margin-top:2px; border-top:solid 1px gray; text-align:right; font-weight:bold;}
+    .rpt-total { background-color:whitesmoke; padding:2px; margin:0; margin-top:5px; border-top:solid 1px gray; font-weight:bold; font-size:150%; }
+
+    #progress-bar{height:100%; margin: 0; background-color:cyan; width:0;}
+    #progress-bar-message{position: absolute;top: 0;bottom: 0;left: 0;right: 0;padding: 4px;color: silver; font-size: 110%;}      
+ 
+  </style>
+  
+  <script type="text/javascript">           
+
+    var MAGRAMA = {  };
+
+    (function(module){
+      module.webWorker = { init : function(script, onmessage){
+                                    var __worker = new Worker(script + '?t=' + new Date().getTime());
+                                    __worker.onmessage = function(e){ onmessage(__worker, JSON.parse(e.data) );}
+                                    return { sendMessage : function(m){ __worker.postMessage(m); },
+                                             terminate   : function(){ 
+                                                        __worker.terminate(); 
+                                                        __worker = undefined;
+                                             }};}}      
+    }(MAGRAMA));
+   
+    var __container;
+    var __progressBar;
+    var __worker;
+
+    MAGRAMA.init = function() {
+      var $ = function(e){return document.getElementById(e);};
+      __container          = $('rowsContainer');
+      __progressBar        = $('progress-bar');
+      __progressBarMessage = $('progress-bar-message');
+      __worker             = MAGRAMA.webWorker.init('worker.js', __onmessage);
+
+      function __builder(e, o){
+        var __e = document.createElement(e);
+        if(o) __e.innerHTML = o;
+        return __e;
+      }
+
+      function __onmessage(sender, message){
+
+        if(!message.type){                   
+          __container.appendChild(__builder('div', message.value).firstChild);          
+          return;
+        }
+
+        if(message.type && message.type === 'report.status'){
+          __progressBarMessage.innerHTML = message.text || '';
+          __progressBar.style.width = message.value + '%';
+          return;  
+        }
+
+        if(message.type && message.type === 'report.end'){
+          setTimeout( function(){ 
+            __progressBar.style.width = '0';
+          __progressBarMessage.innerHTML = '';
+          }, 250);
+          return;  
+        } 
+      }   
+      __worker.sendMessage({ action : 'load-report',                             
+                             report : { source  : 'RPT-0001.js',
+                                        data    : 'data/data0001.js', 
+                                        method  : 'get' }});
+    }
+  
+  </script>
+</head>
+
+<body scroll="No">
+  <form>   
+    <div id="MainContainer" class="MainContainer">
+      <div class="ToolbarContainer">
+        <div id="progress-bar"></div>
+        <div id="progress-bar-message"></div>
+      </div>      
+      <div class="ItemsContainer" id="ItemsContainer">       
+        <div id="rowsContainer">
+            
+        </div>
+      </div>   
+    </div>
+  </form>
+  <script type="text/javascript">
+    MAGRAMA.init();
+  </script>
+</body>
+</html>
