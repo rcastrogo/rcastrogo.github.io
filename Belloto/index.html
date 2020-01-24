@@ -1,0 +1,876 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style type="text/css">
+
+    *, html{ padding:0; margin:0; touch-action: none; }
+    body{font-family: verdana; font-size : 11px;}
+
+    #layerContainer{position: absolute; top:0; left:0; right:0; bottom:0; display:none; background-color:silver; opacity:.8; }  
+      
+    #infoContainer {position: absolute; top:51px; left:5px; width: calc(100% - 10px); border: solid 1px gray; background-color:white; height:18em; opacity:.90; box-shadow: 1px 1px 5px gray; border-radius: 5px; overflow: hidden;  transition: width ease-out 0.55s,background-color ease-out .75s; box-sizing: border-box;display:none; }
+    #infoContainer div.title{ padding: 3px 0; text-align: center;  border-bottom: solid 1px gray; position:absolute; top:4px; left:20px; right:20px; height:15px; font-weight: bold; color: gray; }
+    #infoContainer div.title-toolbar{ position:absolute; top:5px; right:20px; padding: 2px;}
+
+    .lapInfoWrapper { position:absolute; top:28px; bottom:20px; left:20px; right:20px; overflow:auto; background-color: white; border-bottom: solid 1px gray; }
+    .lapInfoWrapper table{ width : 100%; background-color: white; border-spacing:0px; }
+    .lapInfoWrapper table td { text-align:center; padding:0; background-color:lightgray; }
+    .lapInfoWrapper table th { text-align:center; background-color:gray; color: white; font-weight: normal; padding: .5em .2em; }
+    .lapInfoWrapper table th span { color: yellow; font-style: italic; font-size:90% }
+    .lapInfoWrapper tbody tr:nth-child(2n+1) td { background-color:darkgray;  }
+    .lapInfoWrapper table div{ padding:2px 4px; outline: none; margin:3px; text-align:left; }
+    .lapInfoWrapper table div[contenteditable]:focus{ background-color:white; color:black; transition: background-color 1s ease-out; }
+    .lapInfoWrapper table .total-row td{ padding : 3px; background-color: darkslategrey !important; font-weight: bold; color: whitesmoke; font-weight:bold; }
+
+    #btn-hide{ display:none;}
+
+    .map   { position: absolute; top:0; left:0; right:0; bottom:0;}
+    .header{ position: absolute; top:5px; left:5px; right:5px; border: solid 1px gray; background-color:white; border-radius: 5px; box-shadow: 1px 1px 5px gray; padding: .5em; opacity: 0.9; box-sizing: border-box;display:none;}
+    .dist  { position: absolute; font-size: 150%;  color:gray; right: 5px; top: 5px; padding: 4px;}
+
+    button.toolbar-button { float: left; font-size: 20px; margin-left: 4px; height: 32px; width: 32px; font-family:Roboto}
+    table button.toolbar-button {font-size: 11px; height: 18px; width: 18px; }
+
+    #btnZoom{float:none; position:absolute; right:10px; top: 33%; display:none; }
+    
+    #OpenDialogContainer, #EditDocumentDialogContainer {  background-color: white; position: absolute; z-index: 44; top: 10%; left: 10%; right: 10%; bottom: 10%; box-sizing: border-box; padding: 10px; border: solid 1px silver; border-radius: 10px; box-shadow: 1px 1px 5px gray; display:none; overflow:auto; }
+    #OpenDialogContainer h4.title{ margin: 1.5em 0; border-bottom: solid 1px silver; padding-bottom: 3px; box-sizing: content-box; }
+    #routesContainer{ min-height:10em; }
+
+    #EditDocumentDialogContainer{top: 30%; bottom: inherit; }
+    #EditDocumentDialogContainer *{font-size:110%; padding:5px;}
+    #EditDocumentDialogContainer label{ display: inline-block; width:100%; box-sizing:border-box;}
+    #EditDocumentDialogContainer input{ display: inline-block; width:100%; box-sizing:border-box;}
+    #EditDocumentDialogContainer button{ display: inline-block; width: 50%; box-sizing: border-box; margin: 15px 25%;}
+    
+    .route-item{ margin: 0.2em .5%; border: solid 1px silver; padding: 1em 5em 1em 1em; position:relative; border-radius: .6em; margin-bottom:.5em; background-color: white;box-shadow: 1px 1px 8px silver; cursor:pointer; overflow:hidden; transition:background-color ease-in-out .1s;
+                 width: 49%;  box-sizing: border-box;  float: left;
+    }
+
+    .route-item:active { background-color:antiquewhite;}
+
+    .btnDeleteRoute{position: absolute;right: 10px; top: 25%; height: 50%;width: 32px;}
+
+    #fileContainer{ border:dashed 1px silver; padding:.65em;}
+    #txtDataFile{ display: inline-block; width:10em;}
+
+    .profile{ position: absolute; bottom:5px; left:5px; width: calc(100% - 10px); height:30%; border: solid 1px gray; background-color:white; border-radius: 5px; box-shadow: 1px 1px 5px gray; padding: 4px; opacity: 1; overflow:hidden;
+              transition: width ease-out 0.55s,background-color ease-out .75s; box-sizing: border-box; display:none;
+              max-height: 16em; min-height: 13em;
+    }
+    #profileCanvas{ background-color : white; border-radius : 5px }
+
+    @media screen and (max-width: 800px) { .route-item{ float:none; width:auto; } }
+
+  </style>
+
+  <script src="core/Pol.Core.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?libraries=geometry&key=AIzaSyD-FEw7obgz5yH2a1OO84Xm1XzGoWFuWas"></script>   
+  <script src="core/Pol.Commands.js"></script>
+  <script src="core/Pol.ProfileViewer.js"></script>   
+  <script type="text/javascript"> 
+
+    // =======================================================================================================================================================
+    // indexedDB
+    // =======================================================================================================================================================
+    (function(module){
+      module.db = { name      : 'belloto.db', 
+                    version   : 1,
+                    indexedDB : window.indexedDB,
+                    db        : {},
+                    open      : function(callback){
+                      var request = module.db.indexedDB.open(module.db.name, module.db.version);
+                      request.onsuccess = function(e) {                      
+                        module.db.db = e.target.result;    
+                        if(callback) callback(e.target.result);
+                      }
+                      request.onfailure = function(e){ console.error(e); }        
+                      request.onerror   = function(e){ console.error(e); }
+                      request.onupgradeneeded = function(e) {                                          
+                        module.db.db = e.target.result;
+                        try {
+                          if(module.db.db.objectStoreNames && module.db.db.objectStoreNames.contains("routes")) {
+                            module.db.db.deleteObjectStore("routes");
+                          }
+                        }
+                        catch(err){ console.log(err); }
+                        var store = module.db.db.createObjectStore("routes", { keyPath : "name" });
+                      }       
+                    },
+                    deleteRow : function(name, key, callback){                    
+                      var __trans = module.db.db.transaction(name, "readwrite");    
+                      var __request = __trans.objectStore(name).delete(key);
+                      __request.onsuccess = function(e){
+                        if(callback) callback(e.result);
+                      };
+                    },
+                    readAll : function(name, callback){
+                      var __items = [];
+                      var __trans = module.db.db.transaction(name, "readonly");    
+                      var __cursorRequest = __trans.objectStore(name).openCursor(IDBKeyRange.lowerBound(0));
+                      __cursorRequest.onsuccess = function(e) {
+                        var __result = e.target.result;
+                        if(!!__result == false) return callback(__items);    
+                        __items.push(__result.value);
+                        __result.continue();
+                      };
+                      __cursorRequest.onerror = function(e){ };
+                    }
+          }
+    }(Pol));
+
+    // =======================================================================================================================================================
+    // Editable grid
+    // =======================================================================================================================================================
+    (function(module){
+
+      function __makeEditable(table) {
+
+        var __events = {
+          onChange: new module.Core.Event('editableGrid.onChange'),
+          onFocus: new module.Core.Event('editableGrid.onFocus')
+        };
+
+        table._currentIndex = -1;
+
+        // ============================================
+        // Onfocus
+        // ============================================
+        function __onfocus(e) {
+          var __div = e.target;
+          var __td = __div.parentNode;
+          var __tr = __div.parentNode.parentNode;
+          table._old = __div.textContent.trim();
+          table._currentIndex = __tr.rowIndex;
+          __events.onFocus.Dispatch({
+            tr: __tr,
+            td: __td,
+            div: __div
+          });
+        }
+        // ===============================================================
+        // Onblur
+        // ===============================================================
+        function __onblur(e) {
+          var __div = e.target;
+          var __td = __div.parentNode;
+          var __tr = __div.parentNode.parentNode;
+          if (table._old != undefined && table._old != __div.textContent.trim()) {
+            __events.onChange.Dispatch({
+              tr: __tr,
+              td: __td,
+              div: __div,
+              previous: table._old
+            });
+            delete table._old;
+          };
+        }
+        // =========================================================
+        // Divs editables
+        // =========================================================
+        function __addHandlers(divs) {
+          Array.prototype.forEach.call(divs, function (e) {
+            e.onblur = __onblur;
+            e.onfocus = __onfocus;
+          });
+        }
+        __addHandlers(table.querySelectorAll('tr.editable-row div'))
+        // =========================================
+        // onkeypress : Evitar multiples líneas
+        // =========================================
+        table.onkeypress = function (e) {
+          if (e.keyCode == 13) {
+            if (e.preventDefault) e.preventDefault();
+            return false;
+          }
+        }
+        // =======================================================================================================================
+        // onkeydown : Cambio de celda activa
+        // =======================================================================================================================
+        table.onkeydown = function (e) {
+          var __res = true;
+          var __sender = e.target;
+          if (__sender.tagName == 'DIV' && [13, 37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+            var __td = __sender.parentNode;
+            var __row = __sender.parentNode.parentNode;
+            var __pos = window.getSelection().getRangeAt(0).startOffset;
+            var __focus = function (t, r, c) {
+              e.preventDefault();
+              try { t.rows[r].cells[c].firstChild.focus(); } catch (e) { }
+              __res = false;
+            };
+            if (e.keyCode == 13) __focus(this, __row.rowIndex, __td.cellIndex + 1);
+            if (e.keyCode == 38 && __row.rowIndex > 1) __focus(this, __row.rowIndex - 1, __td.cellIndex);  // Up
+            if (e.keyCode == 40 && __row.rowIndex < this.rows.length - 1) __focus(this, __row.rowIndex + 1, __td.cellIndex);  // Down                         
+            if (e.keyCode == 39 && __pos == __sender.textContent.length) __focus(this, __row.rowIndex, __td.cellIndex + 1);
+            if (e.keyCode == 37 && __pos == 0) __focus(this, __row.rowIndex, __td.cellIndex - 1);
+          }
+          return __res;
+        }
+        return { addHandlers: __addHandlers, events: __events };
+      }
+
+      module.editableGrid = { makeEditable: __makeEditable };
+
+    }(Pol));
+    
+    // =======================================================================================================================================================
+    // Map
+    // =======================================================================================================================================================            
+    (function(module){
+     
+      //var __edit = true;
+      var __document;
+      var __commandManager = new Pol.Core.CommandManager(__document);
+      var __map;
+      var __geocoder;
+      var __viewer;
+      var __overlays = [];
+      var __chartContainer; 
+      var __infoContainer; 
+
+
+      // ==============================================================================
+      //  Init 
+      // ==============================================================================
+      function __init(){
+        __chartContainer = $('canvas-container');
+        __infoContainer  = $('infoContainer');
+        __initGoogleMap()
+        __initInputTypeFile();
+        __initViewer();   
+        Pol.db.open(); 
+
+        $('layerContainer').style.display = 'block';
+        $('layerContainer').style.background = 'white url(img/logo.png) no-repeat center center';
+        setTimeout(function(){
+          $('layerContainer').style.display     = 'none';
+          $('layerContainer').style.background = '';    
+          document.querySelector('.header').style.display = 'block';
+
+        }, 1300);
+
+      } 
+     
+      function __resize(){
+        var center = __map.getCenter();
+        google.maps.event.trigger(__map, "resize");
+        __map.setCenter(center);        
+        __viewer.Resize(__chartContainer.clientWidth - ($('btnZoom').style.display == 'block' ? 41 : 9 ), 
+                        __chartContainer.clientHeight - 9);
+      }
+            
+      // =========================================================
+      //  Init google maps object
+      // =========================================================
+      function __initGoogleMap(){
+        var  __prop = { center    : {lat: 40.1805, lng: -4.8902},
+                        zoom      : 10,
+                        mapTypeId : google.maps.MapTypeId.ROADMAP,
+                        disableDefaultUI : true
+        };
+        __map      = new google.maps.Map($("googleMap"), __prop); 
+        __geocoder = new google.maps.Geocoder();
+
+        function __nearest_point_info(latLong){         
+          var dist = google.maps.geometry.spherical.computeDistanceBetween;
+          var __index = -1;
+          var __dist  = Number.MAX_VALUE;
+          __document.points.forEach( function(p, i){
+            var __d = dist(p, latLong);
+            if(__d < __dist){
+              __index = i;
+              __dist = __d;
+            }
+          });
+          return { index    : __index, 
+                   point    : __index > -1 ? __document.points[__index] : '',
+                   distance : __dist};
+        }
+
+        google.maps.event.addListener(__map, 'click', function(event){ 
+          // if(__edit){
+          //  var p = new google.maps.LatLng(event.latLng);
+          //  if(!__document){
+          //    __document             = Belloto.createDocument();
+          //    __document.googleMap   = __map;
+          //    __document.name        = name;
+          //    __commandManager = new Pol.Core.CommandManager(__document)        
+          //  }
+          //  p.index = __document.points.length;
+          //  if(__document.points.length == 0){              
+          //    __document.points.push(p);
+          //    __document.elevations.push(0);
+          //    __document.total.distance  = 0;
+          //    __document.distances.push(__document.total.distance);             
+          //    __document.total.elevation = 0; 
+          //    __document.total.min = 0;
+          //    __document.total.max = 0;
+          //  }else{
+          //    __document.points.push(p);
+          //    __document.elevations.push(0);
+          //    __document.total.distance  += google.maps.geometry.spherical.computeDistanceBetween(__document.points[p.index - 1], __p);
+          //    __document.distances.push(__document.total.distance);             
+          //    __document.total.elevation = 0; 
+          //    __document.total.min = 0;
+          //    __document.total.max = 0;
+          //  }            
+          //  return;
+          //}         
+          if(!__document) return;
+          var __info = __nearest_point_info(event.latLng);         
+          if(__info.index > -1 && __info.distance < 250.0){
+            __addLap(__info.index);
+          }          
+        });
+        
+        google.maps.event.addListener(__map, 'mousemove', function(event){
+          if(!__document) return;
+          var __res = __nearest_point_info(event.latLng);         
+          if(__res.index > -1 && __res.distance < 250.0){
+            __overlays[2].setPosition(__res.point);
+            __overlays[2].setVisible(true);
+            __viewer.DrawPosition(__res.index);
+          }else{
+            __overlays[2].setVisible(false);
+            __viewer.DrawPosition(-1);            
+          }
+        });       
+
+      }     
+
+      // ==============================================================================
+      //  Drag and read gpx files
+      // ==============================================================================
+      function __initInputTypeFile(){
+        var __handleFileSelect = function(evt) {
+          var __files = evt.dataTransfer ? evt.dataTransfer.files : evt.target.files; 
+          if(__files.length==0) return;       
+          if (__files[0].name.toLowerCase().endsWith('.gpx')) {
+            var __reader = new FileReader();
+            __reader.onload = function(e){ __initMapFromXml(e.target.result, __files[0].name); };
+            __reader.readAsText(__files[0], 'ISO-8859-1');
+          }else{
+            alert('Debes seleccionar archivos con extensión "gpx"');  
+          }        
+        } 
+        if (window.File && window.FileReader && window.FileList && window.Blob) {
+          $('txtDataFile').addEventListener('change', __handleFileSelect, false);                       
+        }        
+      } 
+
+      // ==============================================================================
+      //  Create profile viewer control
+      // ==============================================================================
+      function __initViewer(){
+        __viewer = Pol.ProfileViewer.create({ Width   : __chartContainer.clientWidth  - 9, 
+                                              Height  : __chartContainer.clientHeight - 9,
+                                              Padding : [30, 20, 20, 50]
+                                            });
+        __chartContainer.appendChild(__viewer.canvas);
+
+        __viewer.Events.OnItemSelected.Add( function(sender, e){          
+          if(e.target == 'lap'){
+            __commandManager.executeCommad(new Belloto.Commands.RemoveLap(e.lap, __refresh));
+            return;
+          }
+        });
+
+        __viewer.Events.OnTap.Add  ( function(sender, index){ __addLap(index); }); 
+        __viewer.Events.OnRange.Add( function(sender, e){
+          var __dis = Math.abs( __document.distances[e.start] - __document.distances[e.end]);
+          if(__dis>2500){
+            var __from   = Math.min(e.start, e.end);
+            var __to     = Math.max(e.start, e.end);
+            var __center = __to - ~~(Math.abs(__from - __to) / 2);
+            var __bounds = new google.maps.LatLngBounds();
+            for (var i = __from; i < __to; i++) {
+              __bounds.extend(__document.points[i]);
+            }
+            $('btnZoom').style.display = 'block';
+            __fillDocument(__from, __to);
+            __resize();
+            __map.panTo(__document.points[__center]);    
+            __map.fitBounds(__bounds);
+          }
+        }); 
+      }
+
+      function __addLap(index){
+        var __lap = __document.laps.item('id', index);
+        if(!__lap){
+          __lap = { id          : index, 
+                    description : 'Lap {0}'.format(__document.laps.length + 1),
+                    marker      : new google.maps.Marker({ position : __document.points[index],                                                                                         
+                                                           icon     : { path         : google.maps.SymbolPath.CIRCLE,
+                                                                        scale        : 6, 
+                                                                        strokeColor  : 'black', 
+                                                                        strokeWeight : 2, 
+                                                                        fillColor    : 'yellow', 
+                                                                        fillOpacity  : 1
+                                                            },
+                                                            map : __map })
+          };
+          __geocoder.geocode({ 'location': __document.points[index] }, function (results, status) {
+            if (status === google.maps.GeocoderStatus.OK) {
+              if (results[0]) {                  
+                __lap.description = results[0].formatted_address;
+                var __div = document.querySelector('#tr-{0} div'.format(index));
+                if(__div){
+                  __div.textContent = __lap.description; 
+                }
+              }
+            }              
+          });
+          __commandManager.executeCommad(new Belloto.Commands.AddLap(__lap, __refresh));
+        }
+      }
+
+      // ======================================================================================================
+      //  Load GPX
+      // ======================================================================================================
+      function __initMapFromXml(track, name){
+        // ====================================================
+        // Clear Map
+        // ====================================================        
+        while(__overlays[0]){ 
+          __overlays.pop().setMap(null); 
+        }
+        while(__document && __document.laps[0]){
+          __document.laps[0].marker.setMap(null);
+          __document.laps.pop(); 
+        }
+        // ====================================================
+        // Load track data
+        // ==================================================== 
+        __parseXmlString(track, name);        
+        // ===========================================================================================
+        // Create start, end and polyline
+        // ===========================================================================================
+        var __p0    = new google.maps.Marker({ position : __document.points[0], map : __map });
+        var __pN    = new google.maps.Marker({ position : __document.points.lastItem(), map : __map });
+	      var __track = new google.maps.Polyline({ path          : __document.points,
+                                                 strokeColor   : "#0000AA",
+	                                               strokeOpacity : 1,
+	                                               strokeWeight  : 3,
+                                                 map           : __map });
+
+        var __p10    = new google.maps.Marker({ position : __document.points[0], 
+                                                dragable : false,
+                                                icon     : {
+                                                  path         : google.maps.SymbolPath.CIRCLE,
+                                                  scale        : 5, 
+                                                  strokeColor  : 'black', 
+                                                  strokeWeight : 2, 
+                                                  fillColor    : 'white', 
+                                                  fillOpacity  : 1
+                                                },
+                                                map : __map });
+        google.maps.event.addListener(__p10, 'click', function (event) {
+          var __info = __nearest_point_info(event.latLng);
+          if (__info.index > -1) {
+            __addLap(__info.index);
+          }
+        });
+    
+        __overlays.push(__p0);
+        __overlays.push(__pN);
+        __overlays.push(__p10);
+
+        __overlays.push(__track);        
+	      __map.fitBounds(__document.bounds);      
+        // ============================================================================================================
+        // Update UI Controls
+        // ============================================================================================================
+        $('btnSave').disabled = $('btnEdit').disabled = 
+        $('btnUndo').disabled = $('btnRedo').disabled = 
+        $('btnToggleSegmentsView').disabled =  $('btnToggleProfileView').disabled  = false;        
+        $('txtTotalDistance').innerHTML = ' {0} km - {1} m'.format((__document.total.distance / 1000).toFixed(1),
+                                                                   (__document.total.elevation / 1000).toFixed(0));
+        __chartContainer.style.display = 'block';
+        __infoContainer.style.display = 'block';
+        __viewer.data = __document;
+        __resize();
+        __closeOpenDialog();
+        __showLapsInfo();
+      }
+
+      function __parseXmlString(track, name){ 
+        __document             = Belloto.createDocument();
+        __document.googleMap   = __map;
+        __document.name        = name;
+        __commandManager = new Pol.Core.CommandManager(__document)        
+        // =================================================================================================================
+        // Load GPX data
+        // =================================================================================================================
+        function __addPoint(p, ele, dist, i){
+          p.index = i;
+          __document.bounds.extend(p);
+          __document.points.push(p);
+          __document.elevations.push(ele);
+          __document.total.distance  += dist;
+          __document.distances.push(__document.total.distance);             
+          __document.total.elevation += ele > 0.5 ? ele : 0; 
+          __document.total.min = Math.min(__document.total.min, ele);
+          __document.total.max = Math.max(__document.total.max, ele)
+        }        
+        if(track.name){
+          track.points.forEach( function(e, i){                                                         
+            var __point = new google.maps.LatLng(e.lat, e.lng);                             
+            __addPoint(__point, 
+                       parseFloat(e.ele), 
+                       i==0 ? 0.0 : google.maps.geometry.spherical.computeDistanceBetween(__document.points[i-1], __point),
+                       i);
+          });
+          __document.description = track.text;
+          __document.laps = track.segments.map( function(s){
+            return {id          : s.index, 
+                    description : s.name,
+                    marker      : new google.maps.Marker({ position : __document.points[s.index],                                                                                         
+                                                           icon     : { path         : google.maps.SymbolPath.CIRCLE,
+                                                                        scale        : 6, 
+                                                                        strokeColor  : 'black', 
+                                                                        strokeWeight : 2, 
+                                                                        fillColor    : 'yellow', 
+                                                                        fillOpacity  : 1
+                                                           },
+                                                           map : __map })
+            }
+          });            
+        }else{
+          var __xml = Pol.parseXml(track);
+          Pol.toArray(__xml.documentElement.getElementsByTagName("trkpt")).forEach( function(e, i){                                                         
+            var __point = new google.maps.LatLng(e.attributes.getNamedItem('lat').value, e.attributes.getNamedItem('lon').value);            
+            __addPoint(__point,
+                       parseFloat(e.getElementsByTagName("ele")[0].textContent || e.getElementsByTagName("ele")[0].text),
+                       i==0 ? 0.0 : google.maps.geometry.spherical.computeDistanceBetween(__document.points[i-1], __point),
+                       i);
+          });        
+        }
+        __fillDocument(0, __document.points.length - 1);
+      }          
+
+      function __fillDocument(start, end){
+        __document.view.start   = start;
+        __document.view.end     = end; 
+        __document.view.x       = {}; 
+        __document.view.x.max   = __document.distances[end];
+        __document.view.x.min   = __document.distances[start];
+        __document.view.x.range = __document.view.x.max - __document.view.x.min;
+        __document.view.y       = __getRange(__document.elevations, start, end); 
+      }
+
+      function __getRange(array, start, end){
+        var __res     = { min : Number.POSITIVE_INFINITY, max : Number.NEGATIVE_INFINITY }; 
+        var __current = start
+        while(__current < end){
+          __res.min = Math.min(__res.min, array[__current]);
+          __res.max = Math.max(__res.max, array[__current]);
+          __current++;
+        }
+        __res.range = __res.max - __res.min;
+        return __res;
+      }
+            
+      // ======================================================================================================
+      //  Save route
+      // ======================================================================================================
+      function __saveDocument(){
+        var __data = { name     : __document.name, 
+                       text     : __document.description,
+                       total    : __document.total,
+                       points     : __document.points.map( function(p, i){
+                         return { lat : p.lat(), lng : p.lng(), ele : __document.elevations[i]};
+                       }),
+                       segments   : __document.laps.map( function(l){
+                         return { name : l.description, index : l.id };
+                       })};
+        var __transaction = Pol.db.db.transaction("routes", "readwrite");
+        var __store       = __transaction.objectStore("routes");
+        var __request     = __store.put(__data);
+        __request.onsuccess = function(e){};
+        __request.onerror   = function(e){};
+      }
+
+      // ======================================================================================================
+      //  Show Open Dialog
+      // ======================================================================================================
+      function __closeOpenDialog(){
+        $('layerContainer').style.display = '';
+        $('OpenDialogContainer').style.display = '';
+        $('layerContainer').onclick = null;
+      }
+      function __showOpenDialog(){
+        $('layerContainer').style.display = 'block';
+        $('layerContainer').onclick = __closeOpenDialog;
+        $('OpenDialogContainer').style.display = 'block';
+        var __route_container = $('routesContainer');
+        Pol.db.readAll('routes', function(values){
+          __route_container.innerHTML = values.reduce( function(a, v){
+            a.push('<div class="route-item"><button type="button" class="btnDeleteRoute">x</button><h4>{0}</h4>{1}<br/>{3} kms<br/> {2} segmentos </div>'.format(v.name, v.text, v.segments.length, (v.total.distance/1000).toFixed(1)));
+            return a;
+          }, []).join('');
+          Pol.each(__route_container.querySelectorAll('.route-item'), function(item, i){
+            item.onclick = (function(){
+              var __index = i;
+              var __item = item;
+              return function(e){
+                if(e.target.type && e.target.type.toLowerCase() == 'button'){
+                  Pol.db.deleteRow('routes', values[__index].name, function(result){                    
+                    __item.parentNode.removeChild(__item);
+                  }) 
+                  e.preventDefault();                  
+                }else{
+                  __initMapFromXml(values[i], values[i].name);                
+                }
+              };              
+            })();
+          });     
+        });
+      }
+
+      function __showEditDialog(){
+
+        var __layer = $('layerContainer');
+        var __cont  = $('EditDocumentDialogContainer');
+        __layer.style.display = 'block';
+        __layer.onclick = function(){
+          __layer.style.display = '';
+          __cont.style.display = '';
+          __layer.onclick = null;
+        };
+        __cont.style.display = 'block';
+        $('txtDocumentName').value        = __document.name;
+        $('txtDocumentDesctiption').value = __document.description;
+        $('btnEditDocument').onclick = function(){
+          __document.name        = $('txtDocumentName').value.trim();
+          __document.description = $('txtDocumentDesctiption').value.trim();
+          __layer.onclick();
+        }
+      }
+
+      // ======================================================================================================
+      //  Show Laps info
+      // ======================================================================================================
+
+      function __showLapsInfo(){
+        var __table_template = '<table><tr><th></th><th>Num</th><th>Descripción</th><th>Inicio</th><th>Fin</th><th>Distancia</th><th>Altura</th><th>Pendiente</th></tr>{0}</table>';
+        var __row_template   = '<tr class="editable-row" id="tr-{7}"><td style="width:1%"><button type="button" class="toolbar-button" id="btn-{7}">✖</button></td><td style="width:1%">{0}</td><td style="width:50%"><div contenteditable>{1}</div></td><td>{2}</td><td>{3}</td><td>{4}</td><td>{5}</td><td>{6} %</td></tr>';
+        var __compteRow      = function(id0, id1, i, description, id){
+          var v = { d0 : __document.distances[id0]/1000,
+                    d1 : __document.distances[id1]/1000,                         
+                    e0 : __document.elevations[id0],
+                    e1 : __document.elevations[id1] };
+          v.d3 = v.d1 - v.d0;
+          v.e3 = v.e1 - v.e0;
+          v.p  = v.e3 / v.d3 / 10;
+          return { value : v, 
+                   html  : __row_template.format(i, 
+                                                 description,
+                                                 v.d0.toFixed(1),
+                                                 v.d1.toFixed(1),
+                                                 v.d3.toFixed(1),
+                                                 v.e3.toFixed(0),
+                                                 v.p.toFixed(1),
+                                                 id)};    
+        }
+        var __rows    = '';
+        var __last    = { id: 0 };
+        var __showAll = $('checkAllSegments').checked;
+        var __km = 0.0;
+        var __m  = 0.0;
+        __document.laps.forEach( function(lap, i){                  
+          lap.data = '';
+          var __rowData = __compteRow(__last.id, lap.id, i + 1, lap.description, lap.id);
+          if (__showAll || __rowData.value.p > 0.5){
+            __rows += __rowData.html
+            lap.data = __rowData;
+          }
+          if(__rowData.value.p > 0.5){
+            __m  += __rowData.value.e3;
+            __km += __rowData.value.d3;
+          }
+          __last = lap;
+          if(i==__document.laps.length-1){
+            __rowData = __compteRow(lap.id, __document.distances.length - 1, i + 2, __document.resto || 'Resto', 'hide');
+            if (__showAll || __rowData.value.p > 0.5) {
+              __rows += __rowData.html;
+              lap.data = __rowData;
+            }
+            if(__rowData.value.p > 0.5){
+              __m  += __rowData.value.e3;
+              __km += __rowData.value.d3;
+            }
+          }
+
+        });
+        if(__m > 0.0){
+          __rows += '<tr class="total-row"><td colspan="5"></td><td>{0}</td><td>{1}</td><td></td></tr>'.format(__km.toFixed(1), __m.toFixed(0));
+        }
+        document.querySelector('.lapInfoWrapper').innerHTML = __table_template.format(__rows);
+        Pol.toArray(document.querySelectorAll('.lapInfoWrapper .toolbar-button'))
+           .forEach( function(e){
+             e.onclick = function(e){
+               var __i = this.id.split('-')[1];              
+               if(__i){
+                 var __lap = __document.laps.item('id', __i);
+                 __commandManager.executeCommad(new Belloto.Commands.RemoveLap(__lap, __refresh));              
+               }
+             }
+           });
+        var __grid = Pol.editableGrid.makeEditable(document.querySelector('.lapInfoWrapper table'))
+        __grid.events.onFocus.Add ( function(name, e){});
+        __grid.events.onChange.Add( function(name, e){
+          var __id = e.tr.id.split('-')[1];
+          var __lap = __document.laps.item('id', __id);
+          if(__lap){
+            __lap.description = e.div.textContent;
+          }else{
+            __document.resto  = e.div.textContent;
+          }          
+        });
+      }
+                  
+      function __refresh(){        
+        __document.laps = __document.laps.orderBy(function(l){ return l.id; });
+        __viewer.Draw();
+        __showLapsInfo();                    
+      }
+      
+      var __createLink = function(ref){
+        return function(name){
+          var __anchor = $.$('a', { target : '_blank', href : ref });  
+          if(name) __anchor.setAttribute('download', name); 
+          document.body.appendChild(__anchor); 
+          var __event = document.createEvent('MouseEvents');
+          __event.initMouseEvent('click', true, true, window, 0, 0, 0, 1, 1, false, false, false, false, 0, null);
+          __anchor.dispatchEvent(__event);               
+          document.body.removeChild(__anchor);
+        }
+      }
+
+      Belloto.UI = { init     : __init,                       
+                     resize   : __resize,
+                     lapsInfo : __showLapsInfo,
+                     toggleMapType : function(){
+                        this.__index = (this.__index || '5') % 4;                          
+                        __map.setMapTypeId([google.maps.MapTypeId.ROADMAP,
+                                            google.maps.MapTypeId.TERRAIN,
+                                            google.maps.MapTypeId.SATELLITE,
+                                            google.maps.MapTypeId.HYBRID][this.__index]);
+                        this.__index++;
+                     },
+                     toggleProfileView : function(){
+                        this.__hidden = !this.__hidden || false;
+                        __chartContainer.style.visibility = 'visible';
+                        __chartContainer.style.width   = !this.__hidden ? '' : '50px';
+                        __chartContainer.style.backgroundColor = !this.__hidden ? '' : 'gray';
+                        $('profileCanvas').style.visibility = !this.__hidden ? '' : 'hidden';
+                        if(this.__hidden){
+                          setTimeout(function(){ __chartContainer.style.visibility = 'hidden'; }, 1000);
+                        }else{
+                          setTimeout(function(){ __resize(); }, 1000);
+                        }
+                     },
+                     toggleSegmentsView : function(){
+                        this.__hidden = !this.__hidden || false;
+                        __infoContainer.style.visibility = 'visible';
+                        __infoContainer.style.width           = !this.__hidden ? '' : '50px'; 
+                        __infoContainer.style.backgroundColor = !this.__hidden ? '' : 'gray';
+                        $('infoContainerWrapper').style.visibility = !this.__hidden ? 'visible' : 'hidden';
+                        if(this.__hidden){
+                          setTimeout(function(){
+                            __infoContainer.style.visibility = 'hidden';  
+                          }, 1000);
+                        }
+                     }, 
+                     undo : function(){ __commandManager.undo(); },
+                     redo : function(){ __commandManager.redo(); },
+                     zoom : function(){ 
+                       __fillDocument(0, __document.points.length - 1);
+                       $('btnZoom').style.display = 'none';
+                       __resize();
+                     },
+                     saveDocument   : function(){ __saveDocument(); },
+                     showOpenDialog : function(){ __showOpenDialog(); },
+                     showEditDialog : function(){ __showEditDialog(); },
+                     exportToCsv    : function(){
+                       var data = 'Descripción;Inicio;Fin;Distancia;Altura;Pendiente\r\n' +
+                                  __document.laps.reduce( function(a, l){
+                                    if(l.data){
+                                      a.push('{0};{1};{2};{3};{4}'.format(l.description, l.data.value.d0, l.data.value.d1, l.data.value.d3));
+                                    }                                     
+                                    return a;
+                                  }, []).join('\r\n');
+                       __createLink("data:text/csv;charset=utf-8," + encodeURIComponent(data))('route.csv');
+                     }
+      };    
+
+    }(Pol));
+
+    google.maps.event.addDomListener(window, 'load',   Belloto.UI.init);
+    google.maps.event.addDomListener(window, 'resize', Belloto.UI.resize);
+    
+  </script>
+  
+</head>
+<body>
+  
+  <div id="mainContainer">
+    <div class="map" id="googleMap"></div>
+    <div class="header">
+      <button type="button" class="toolbar-button" id="btnLoad" title="Cargar ruta" onclick="Belloto.UI.showOpenDialog()">📥</button>
+      <button type="button" class="toolbar-button" id="btnSave" disabled title="Grabar ruta" onclick="Belloto.UI.saveDocument()">💾</button>
+      <button type="button" class="toolbar-button" id="btnEdit" disabled onclick="Belloto.UI.showEditDialog()" title="Cambiar nombre">🖉</button>
+      <button type="button" class="toolbar-button" id="btnUndo" disabled title="Deshacer" onclick="Belloto.UI.undo()">↶</button>
+      <button type="button" class="toolbar-button" id="btnRedo" disabled title="Rehacer" onclick="Belloto.UI.redo()">↷</button>
+
+      <button type="button" class="toolbar-button" id="btnToggleSegmentsView" disabled onclick="Belloto.UI.toggleSegmentsView.call(this)" title="Mostrar/ocultar segmentos">🔘</button>
+      <button type="button" class="toolbar-button" id="btnToggleProfileView" disabled onclick="Belloto.UI.toggleProfileView.call(this)" title="Mostrar/ocultar perfil">📈</button>
+
+      <button type="button" class="toolbar-button" id="btnToggleMapType" onclick="Belloto.UI.toggleMapType()" title="Cambiar tipo de mapa">☰</button>
+      <button type="button" class="toolbar-button" id="btnExport" onclick="Belloto.UI.exportToCsv()" title="Exportar">📅</button>
+      
+      <div class="dist" id="txtTotalDistance"></div>
+      
+    </div>
+
+    <div class="profile" id="canvas-container">
+      <button type="button" class="toolbar-button" id="btnZoom" onclick="Belloto.UI.zoom()" title="Zoom">💢</button>
+    </div>
+  </div>
+
+  <div id="infoContainer">
+    <div id="infoContainerWrapper">
+      <div class="title">Segmentos</div>
+      <div class="title-toolbar">
+        <label for="checkAllSegments">Mostrar todos </label>
+        <input id="checkAllSegments" type="checkbox" style="vertical-align: middle;" onclick="Belloto.UI.lapsInfo()" />
+      </div>
+      <div class="lapInfoWrapper"></div>
+    </div>
+  </div>
+
+  <div id="layerContainer"></div>
+
+  <div id="OpenDialogContainer">
+    <h4 class="title">Importar archivo GPX</h4>
+    <div id="fileContainer">
+      <input id="txtDataFile" class="inputFile" name="txtDataFile" type="file" />
+      <br />
+    </div>
+    <h4 class="title">Rutas grabadas</h4>
+    <div id="routesContainer"></div>
+  </div>
+
+  <div id="EditDocumentDialogContainer">
+    <label for="txtDocumentName">Nombre </label><input id="txtDocumentName" /><br />
+    <label for="txtDocumentDesctiption">Descripción </label><input id="txtDocumentDesctiption" /><br />
+    <button id="btnEditDocument" type="button">OK</button>
+  </div>
+
+</body>
+
+</html>
