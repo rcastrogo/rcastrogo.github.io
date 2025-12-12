@@ -387,7 +387,7 @@ Pol.Core.Game.Configuration = function(){
   }
   _that.load = function(){
     if(_data && _data.length>0){
-      _value = JSON.parse(_data['global']);
+      _value = JSON.parse(_data['global'] || '{}');
     }    
     return _that
   }
